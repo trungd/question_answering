@@ -1,3 +1,6 @@
+# Implementations of "Dynamic Coattention Networks For Question Answering"
+# Based on: https://github.com/atulkum/co-attention
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
