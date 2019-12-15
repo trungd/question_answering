@@ -1,0 +1,30 @@
+backend: pytorch
+model:
+  name: src.models.dcn.DCN
+  hidden_size: 512
+  maxout_pool_size: 16
+  max_decoder_steps: 4
+  dropout: 0.15
+  embedding_dim: 300
+dataset:
+  name: src.datasets.squad.SQuAD_v1
+  paragraph_max_length: 400
+  question_max_length: 50
+  answer_max_len: 30
+  embeddings:
+    pretrained: GloVe
+    name: 840B
+    dim: 300
+    freeze: true
+train:
+  num_epochs: 30
+  batch_size: 32
+  eval: [dev]
+  optimizer:
+    name: adam
+    lr: 0.001
+  lr_scheduler:
+    gamma: 0.1
+    milestones: [10, 20]
+test:
+  metrics: [em, f1]

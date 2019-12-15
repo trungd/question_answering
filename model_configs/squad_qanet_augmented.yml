@@ -1,0 +1,60 @@
+# Configurations based on
+#
+# @article{yu2018qanet,
+#   title={Qanet: Combining local convolution with global self-attention for reading comprehension},
+#   author={Yu, Adams Wei and Dohan, David and Luong, Minh-Thang and Zhao, Rui and Chen, Kai and Norouzi, Mohammad and Le, Quoc V},
+#   journal={arXiv preprint arXiv:1804.09541},
+#   year={2018}[
+# }
+
+backend: pytorch
+model:
+  name: src.models.qanet.QANet
+  connector_dim: 128
+  input_embedding:
+    # pre-trained word embedding is specified in `dataset`
+    char_dim: 200
+  embedding_encoder:
+    # convolution layer
+    conv_num_layers: 4
+    conv_kernel_size: 7
+    # self attention layer
+    num_heads: 8
+  context_query_attention:
+  model_encoder:
+    conv_num_layers: 2
+    conv_kernel_size: 5
+    num_blocks: 7
+    num_heads: 8
+  dropout: 0.1
+  dropout_char: 0.05
+dataset:
+  name: src.datasets.squad.SQuAD_v1
+  shuffle: true
+  paragraph_max_length: 400
+  question_max_length: 50
+  answer_max_len: 30
+  char_dim: 200
+  paths:
+    train: [train-v1.1.json, augmented.json]
+    dev: dev-v1.1.json
+  embeddings:
+    pretrained: GloVe
+    name: 840B
+    dim: 300
+    freeze: true
+train:
+  batch_size: 16
+  num_epochs: 100
+  eval: [dev]
+  optimizer:
+    name: adam
+    betas: [0.8, 0.999]
+    eps: 1e-7
+    lr: 0.001
+  lr_scheduler:
+    milestones: [5, 10, 15, 20]
+    gamma: 0.1
+test:
+  batch_size: 16
+  metrics: [em, f1]
