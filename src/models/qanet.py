@@ -67,9 +67,11 @@ def get_timing_signal(length, channels, min_timescale=1.0, max_timescale=1.0e4):
 class DepthwiseSeparableConv(nn.Module):
     def __init__(self, in_ch, out_ch, k, bias=True):
         super().__init__()
-        self.depthwise_conv = nn.Conv1d(in_channels=in_ch, out_channels=in_ch, kernel_size=k, groups=in_ch,
-                                        padding=k // 2, bias=False)
-        self.pointwise_conv = nn.Conv1d(in_channels=in_ch, out_channels=out_ch, kernel_size=1, padding=0, bias=bias)
+        self.depthwise_conv = nn.Conv1d(
+            in_channels=in_ch, out_channels=in_ch, kernel_size=k, groups=in_ch,
+            padding=k // 2, bias=False)
+        self.pointwise_conv = nn.Conv1d(
+            in_channels=in_ch, out_channels=out_ch, kernel_size=1, padding=0, bias=bias)
 
     def forward(self, x):
         return F.relu(self.pointwise_conv(self.depthwise_conv(x)))
@@ -96,20 +98,12 @@ class SelfAttention(nn.Module):
     def __init__(self, connector_dim, num_heads, dropout):
         super().__init__()
         self.num_heads = num_heads
-        #self.key_conv = InitializedConv1d(connector_dim, connector_dim, kernel_size=1, relu=False, bias=False)
-        #self.value_conv = InitializedConv1d(connector_dim, connector_dim, kernel_size=1, relu=False, bias=False)
-        #self.query_conv = InitializedConv1d(connector_dim, connector_dim, kernel_size=1, relu=False, bias=False)
         self.attn = MultiheadAttention(
             embed_dim=connector_dim,
             num_heads=num_heads,
             dropout=dropout)
 
     def forward(self, query, mask):
-        # X, _ = self.attn(
-        #     self.query_conv(query).permute(2, 0, 1),
-        #     self.key_conv(query).permute(2, 0, 1),
-        #     self.value_conv(query).permute(2, 0, 1),
-        #     key_padding_mask=mask)
         query = query.permute(2, 0, 1)
         X, _ = self.attn(query, query, query, key_padding_mask=mask)
         return X.permute(1, 2, 0)
@@ -151,15 +145,20 @@ class EncoderBlock(nn.Module):
             num_heads: int,
             dropout):
         super().__init__()
+
         self.convs = nn.ModuleList([DepthwiseSeparableConv(
             conv_num_filters, conv_num_filters, kernel_size
         ) for _ in range(conv_num_layers)])
+
         self.self_att = SelfAttention(connector_dim, num_heads, dropout)
+
         self.FFN_1 = InitializedConv1d(conv_num_filters, conv_num_filters, relu=True, bias=True)
         self.FFN_2 = InitializedConv1d(conv_num_filters, conv_num_filters, bias=True)
+
         self.norm_C = nn.ModuleList([nn.LayerNorm(connector_dim) for _ in range(conv_num_layers)])
         self.norm_1 = nn.LayerNorm(connector_dim)
         self.norm_2 = nn.LayerNorm(connector_dim)
+
         self.conv_num_layers = conv_num_layers
         self.dropout_p = dropout
         self.dropout = nn.Dropout(dropout)

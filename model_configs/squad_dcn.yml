@@ -1,10 +1,14 @@
 backend: pytorch
 model:
   name: src.models.dcn.DCN
-  hidden_size: 512
+  hidden_size: 200
+  encoder:
+    num_layers: 3
+  decoder:
+    num_layers: 2
   maxout_pool_size: 16
   max_decoder_steps: 4
-  dropout: 0.15
+  dropout: 0.2
   embedding_dim: 300
 dataset:
   name: src.datasets.squad.SQuAD_v1

@@ -147,16 +147,14 @@ class SQuAD(DatasetBuilder):
     version = None
 
     def __init__(self, params: MainConfig):
-        super().__init__(params)
         assert self.version
+        base_url = "https://rajpurkar.github.io/SQuAD-explorer/dataset/"
+        super().__init__(
+            params,
+            downloads=[base_url + fn for fn in ["train-%s.json" % self.version, "dev-%s.json" % self.version]])
+
         self._vocab_word = None
         self._vocab_char = None
-
-    def maybe_download_and_extract(self, force=False):
-        super().maybe_download_and_extract(force)
-        base_url = "https://rajpurkar.github.io/SQuAD-explorer/dataset/"
-        for fn in ["train-%s.json" % self.version, "dev-%s.json" % self.version]:
-            self.download_and_extract(base_url + fn, self.get_raw_data_dir())
 
     def input_file_paths(self, mode):
         if self.configs.paths is None or mode not in self.configs.paths:
